@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { numberFmt } from '../lib/format'
+import RastreioModal from '../components/RastreioModal'
 
 type Valor = string | number | boolean | null
 
@@ -35,6 +36,7 @@ export default function Pedidos() {
   const [busca, setBusca] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [rastreio, setRastreio] = useState<Record<string, Valor> | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -105,6 +107,15 @@ export default function Pedidos() {
                   <tr key={String(l.PEDIDO)}>
                     {lista.colunas.map((c) => {
                       const texto = formatar(l[c.campo], c.tipo)
+                      if (c.campo === 'COD_RASTREAMENTO' && texto) {
+                        return (
+                          <td key={c.campo}>
+                            <button type="button" className="link-btn" onClick={() => setRastreio(l)} title="Ver rastreio">
+                              {texto}
+                            </button>
+                          </td>
+                        )
+                      }
                       return <td key={c.campo} title={texto} className={c.tipo === 'moeda' ? 'num' : ''}>{texto}</td>
                     })}
                   </tr>
@@ -114,6 +125,15 @@ export default function Pedidos() {
           </div>
         )}
       </section>
+
+      {rastreio && (
+        <RastreioModal
+          codigo={String(rastreio.COD_RASTREAMENTO)}
+          pedido={formatar(rastreio.PEDIDO)}
+          cliente={formatar(rastreio.CLIENTE)}
+          onClose={() => setRastreio(null)}
+        />
+      )}
     </main>
   )
 }

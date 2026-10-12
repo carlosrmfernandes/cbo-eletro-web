@@ -283,3 +283,60 @@ button.ghost:hover:not(:disabled) { background: var(--bg); }
 .table-dados th:first-child, .table-dados td:first-child { text-transform: none; }
 .table-dados .num { text-align: right; }
 .table-dados tbody tr:hover td { background: var(--bg); }
+
+/* Código de rastreio clicável e modal de rastreio */
+button.link-btn {
+  background: none;
+  padding: 0;
+  border-radius: 4px;
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+button.link-btn:hover:not(:disabled) { background: none; color: var(--primary-hover); }
+button.link-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.modal {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  width: min(620px, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  box-shadow: 0 20px 50px var(--shadow);
+}
+.modal::backdrop { background: rgba(15, 20, 29, 0.55); }
+.modal-box { display: flex; flex-direction: column; max-height: calc(100vh - 4rem); }
+.modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border); }
+.modal-head h2 { margin: 0; font-size: 1.15rem; }
+.modal-close { background: transparent; color: var(--muted); font-size: 1.5rem; line-height: 1; padding: 0.15rem 0.5rem; font-weight: 400; }
+.modal-close:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+.modal-body { padding: 1.2rem 1.4rem 1.4rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.2rem; }
+
+.rastreio-codigo { display: flex; align-items: baseline; gap: 0.75rem; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.rastreio-codigo .link-btn { font-size: 0.8rem; letter-spacing: 0; }
+.rastreio-atual { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.9rem 1rem; border-radius: 10px; background: var(--bg); border-left: 4px solid var(--primary); }
+.rastreio-atual .muted { margin: 0; font-size: 0.88rem; }
+.rastreio-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.rastreio-retirada { font-size: 0.88rem; font-weight: 500; }
+
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { position: relative; display: grid; grid-template-columns: 7.5rem 1fr; gap: 0.25rem 1.25rem; padding: 0 0 1.1rem; }
+/* Linha vertical e bolinha de cada evento */
+.timeline li::before { content: ''; position: absolute; left: calc(7.5rem + 0.5rem); top: 0.35rem; bottom: -0.35rem; width: 2px; background: var(--border); }
+.timeline li:last-child::before { display: none; }
+.timeline li::after { content: ''; position: absolute; left: calc(7.5rem + 0.5rem - 4px); top: 0.3rem; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--axis); }
+.timeline li.atual::after { background: var(--primary); border-color: var(--primary); }
+.timeline-data { font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; padding-right: 0.5rem; }
+.timeline-texto { display: flex; flex-direction: column; gap: 0.2rem; padding-left: 0.9rem; font-size: 0.9rem; }
+.timeline-texto .muted { margin: 0; font-size: 0.84rem; }
+
+@media (max-width: 520px) {
+  .timeline li { grid-template-columns: 1fr; padding-left: 1.4rem; }
+  .timeline li::before { left: 4px; }
+  .timeline li::after { left: 0; }
+  .timeline-data { text-align: left; padding: 0; }
+  .timeline-texto { padding-left: 0; }
+}
