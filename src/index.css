@@ -282,7 +282,66 @@ button.ghost:hover:not(:disabled) { background: var(--bg); }
 .table-dados td { text-align: left; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
 .table-dados th:first-child, .table-dados td:first-child { text-transform: none; }
 .table-dados .num { text-align: right; }
+.table-dados tbody tr { cursor: pointer; }
 .table-dados tbody tr:hover td { background: var(--bg); }
+.table-dados tbody tr.selecionada td { background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
+
+/* Observação editável na lista de pedidos */
+.table-dados td.obs-cell { min-width: 200px; max-width: 320px; padding-top: 0.3rem; padding-bottom: 0.3rem; }
+button.obs-view {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.25rem 0.4rem;
+  border: 1px dashed transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.obs-lampada { flex: none; }
+.obs-texto { overflow: hidden; text-overflow: ellipsis; }
+button.obs-view:hover:not(:disabled) { background: var(--surface); border-color: var(--border); }
+.obs-vazia { color: var(--muted); opacity: 0; }
+tr:hover .obs-vazia, button.obs-view:focus-visible .obs-vazia { opacity: 1; }
+.obs-input {
+  width: 100%;
+  font: inherit;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+}
+.obs-erro { display: block; margin-top: 0.2rem; font-size: 0.78rem; color: var(--danger); white-space: normal; }
+
+/* Seletor de colunas da lista de pedidos */
+.colunas-menu { position: relative; }
+.colunas-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 20;
+  min-width: 220px;
+  max-height: min(420px, calc(100vh - 200px));
+  overflow-y: auto;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px var(--shadow);
+}
+.colunas-pop label { display: flex; align-items: center; gap: 0.55rem; padding: 0.35rem 0.5rem; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.colunas-pop label:hover { background: var(--bg); }
+.colunas-pop input { accent-color: var(--primary); }
+.colunas-acoes { display: flex; justify-content: flex-end; padding: 0.15rem 0.5rem 0.4rem; border-bottom: 1px solid var(--border); margin-bottom: 0.3rem; font-size: 0.85rem; }
 
 /* Código de rastreio clicável e modal de rastreio */
 button.link-btn {

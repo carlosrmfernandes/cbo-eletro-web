@@ -7,6 +7,7 @@ const STATUS = [
   { chave: 'aguardandoDevolucao', nome: 'Aguardando Devolução' },
   { chave: 'aguardandoReversa', nome: 'Aguardando Reversa' },
   { chave: 'aguardandoRetirada', nome: 'Aguardando Retirada' },
+  { chave: 'fc82', nome: 'FC82' },
 ]
 
 export default function Layout() {

@@ -20,10 +20,6 @@ interface Evento {
 interface Rastreio {
   codigo: string
   mensagem: string | null
-  servico: string | null
-  previsaoEntrega: string | null
-  peso: number | null
-  valorDeclarado: number | null
   eventos: Evento[]
 }
 
@@ -37,7 +33,6 @@ interface Props {
 // Os Correios mandam as datas no horário de Brasília e sem fuso; lidas como hora local, saem como vieram.
 const dataHoraFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 const dataFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' })
-const moedaFmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 const dia = (s: string) => dataFmt.format(new Date(s.length === 10 ? `${s}T00:00:00` : s))
 
 const trecho = (e: Evento) => {
@@ -77,12 +72,6 @@ export default function RastreioModal({ codigo, pedido, cliente, onClose }: Prop
   }
 
   const ultimo = dados?.eventos[0]
-  const resumo = dados && [
-    dados.servico,
-    dados.previsaoEntrega && `Previsão ${dia(dados.previsaoEntrega)}`,
-    dados.peso != null && `${String(dados.peso).replace('.', ',')} kg`,
-    dados.valorDeclarado != null && `Declarado ${moedaFmt.format(dados.valorDeclarado)}`,
-  ].filter(Boolean)
 
   return (
     <dialog
@@ -120,7 +109,6 @@ export default function RastreioModal({ codigo, pedido, cliente, onClose }: Prop
                 <div className="rastreio-atual">
                   <span className="rastreio-label">Situação atual</span>
                   <strong>{ultimo.descricao}</strong>
-                  {resumo && resumo.length > 0 && <span className="muted">{resumo.join(' · ')}</span>}
                   {ultimo.limiteRetirada && (
                     <span className="rastreio-retirada">
                       Retirar até {dia(ultimo.limiteRetirada)}
