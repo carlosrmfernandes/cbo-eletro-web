@@ -1,102 +1,55 @@
-import { useEffect, useRef, useState } from 'react'
-import { api } from '../lib/api'
-
-export interface Observacao {
-  texto: string
-  por: string | null
-  em: string
-}
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import AnotacoesModal, { type Anotacao } from './AnotacoesModal'
 
 interface Props {
   pedido: string
+  cliente?: string
+  // Última anotação e quantas o pedido tem.
   texto: string
   por: string | null
   em: string | null
-  onSalvo: (observacao: Observacao | null) => void
+  qtd: number
+  onAtualizado: (anotacoes: Anotacao[]) => void
 }
 
 const quandoFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 
-// Observação do pedido, compartilhada entre todos: clique para editar; Enter ou sair do campo salva, Esc cancela.
-export default function ObservacaoCell({ pedido, texto, por, em, onSalvo }: Props) {
-  const [editando, setEditando] = useState(false)
-  const [valor, setValor] = useState(texto)
-  const [salvando, setSalvando] = useState(false)
-  const [erro, setErro] = useState('')
-  const input = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (editando) input.current?.focus()
-  }, [editando])
-
-  const abrir = () => {
-    setValor(texto)
-    setErro('')
-    setEditando(true)
-  }
-
-  const salvar = async () => {
-    const novo = valor.trim()
-    if (novo === texto) return setEditando(false)
-    setSalvando(true)
-    try {
-      const { observacao } = await api<{ observacao: Observacao | null }>(
-        `/dashboard/pedidos/${encodeURIComponent(pedido)}/observacao`,
-        { method: 'PUT', body: JSON.stringify({ texto: novo }) },
-      )
-      onSalvo(observacao)
-      setEditando(false)
-    } catch (err) {
-      // Continua editando para não perder o que foi digitado.
-      setErro((err as Error).message)
-    } finally {
-      setSalvando(false)
-    }
-  }
-
-  if (editando) {
-    return (
-      <td className="obs-cell">
-        <input
-          ref={input}
-          className="obs-input"
-          value={valor}
-          maxLength={2000}
-          disabled={salvando}
-          placeholder="Escreva a observação"
-          onChange={(e) => setValor(e.target.value)}
-          onBlur={salvar}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur()
-            if (e.key === 'Escape') setEditando(false)
-          }}
-        />
-        {erro && <span className="obs-erro">{erro}</span>}
-      </td>
-    )
-  }
+// Anotações do pedido, compartilhadas entre todos: na coluna só a lâmpada; o clique abre o histórico.
+export default function ObservacaoCell({ pedido, cliente, texto, por, em, qtd, onAtualizado }: Props) {
+  const [aberto, setAberto] = useState(false)
 
   const autoria = por && em ? `${por} em ${quandoFmt.format(new Date(em))}` : ''
+  const dica = qtd
+    ? `${qtd === 1 ? '1 anotação' : `${qtd} anotações`}. Última:\n${texto}${autoria ? `\n— ${autoria}` : ''}`
+    : 'Clique para adicionar uma anotação'
+
   return (
-    <td className="obs-cell" title={texto ? `${texto}${autoria ? `\n— ${autoria}` : ''}` : 'Clique para adicionar'}>
-      <button type="button" className="obs-view" onClick={abrir}>
-        {texto ? (
+    <td className="obs-cell" title={dica}>
+      <button type="button" className="obs-view" onClick={() => setAberto(true)}>
+        {qtd ? (
           <>
             <Lampada />
-            <span className="obs-texto">{texto}</span>
+            {qtd > 1 && <span className="obs-qtd">{qtd}</span>}
           </>
         ) : (
           <span className="obs-vazia">+ Adicionar</span>
         )}
       </button>
+      {/* No body, para o modal não herdar os estilos da célula. */}
+      {aberto &&
+        createPortal(
+          <AnotacoesModal pedido={pedido} cliente={cliente} onAtualizado={onAtualizado} onClose={() => setAberto(false)} />,
+          document.body,
+        )}
     </td>
   )
 }
 
-// Lâmpada amarela: sinaliza que o pedido tem observação.
+// Lâmpada amarela: sinaliza que o pedido tem anotação.
 function Lampada() {
   return (
-    <svg className="obs-lampada" viewBox="0 0 24 24" width="16" height="16" aria-label="Tem observação" role="img">
+    <svg className="obs-lampada" viewBox="0 0 24 24" width="16" height="16" aria-label="Tem anotação" role="img">
       <path
         d="M12 2a7 7 0 0 0-4 12.75V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.25A7 7 0 0 0 12 2Z"
         fill="#f5c518"

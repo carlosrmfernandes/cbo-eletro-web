@@ -4,10 +4,12 @@ import ThemeToggle from './ThemeToggle'
 
 // Mesma ordem (e cores) dos cards do dashboard.
 const STATUS = [
-  { chave: 'aguardandoDevolucao', nome: 'Aguardando Devolução' },
-  { chave: 'aguardandoReversa', nome: 'Aguardando Reversa' },
-  { chave: 'aguardandoRetirada', nome: 'Aguardando Retirada' },
-  { chave: 'fc82', nome: 'FC82' },
+  { chave: 'aguardandoDevolucao', nome: 'Aguardando Devolução', serie: 1 },
+  { chave: 'aguardandoReversa', nome: 'Aguardando Reversa', serie: 2 },
+  { chave: 'aguardandoRetirada', nome: 'Aguardando Retirada', serie: 3 },
+  { chave: 'fc82', nome: 'FC82', serie: 4 },
+  { chave: 'fraude', nome: 'Fraude', serie: 4 },
+  { chave: 'disputa', nome: 'Disputa', serie: 4 },
 ]
 
 export default function Layout() {
@@ -31,9 +33,9 @@ export default function Layout() {
         <nav className="sidebar" aria-label="Menu">
           <NavLink to="/" end className="side-link">Indicadores</NavLink>
           <span className="side-title">Pedidos</span>
-          {STATUS.map((s, i) => (
+          {STATUS.map((s) => (
             <NavLink key={s.chave} to={`/pedidos/${s.chave}`} className="side-link">
-              <span className={`swatch serie-${i + 1}`} />
+              <span className={`swatch serie-${s.serie}`} />
               {s.nome}
             </NavLink>
           ))}

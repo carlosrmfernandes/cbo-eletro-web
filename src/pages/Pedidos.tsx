@@ -4,7 +4,8 @@ import { api } from '../lib/api'
 import { numberFmt } from '../lib/format'
 import RastreioModal from '../components/RastreioModal'
 import ColunasMenu from '../components/ColunasMenu'
-import ObservacaoCell, { type Observacao } from '../components/ObservacaoCell'
+import ObservacaoCell from '../components/ObservacaoCell'
+import type { Anotacao } from '../components/AnotacoesModal'
 
 type Valor = string | number | boolean | null
 
@@ -19,6 +20,7 @@ interface Lista {
   status: string
   colunas: Coluna[]
   ocultas: string[]
+  ordemPersonalizada: boolean
   linhas: Record<string, Valor>[]
 }
 
@@ -41,6 +43,8 @@ export default function Pedidos() {
   const [loading, setLoading] = useState(false)
   const [rastreio, setRastreio] = useState<Record<string, Valor> | null>(null)
   const [selecionado, setSelecionado] = useState<string | null>(null)
+  const [arrastando, setArrastando] = useState<string | null>(null)
+  const [alvo, setAlvo] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -71,12 +75,21 @@ export default function Pedidos() {
     return lista.linhas.filter((l) => visiveis.some((c) => formatar(l[c.campo], c.tipo).toLowerCase().includes(termo)))
   }, [lista, visiveis, busca])
 
-  const atualizarObservacao = (pedido: Valor, o: Observacao | null) =>
+  // A linha guarda a última anotação (vem primeiro no histórico) e quantas são.
+  const atualizarAnotacoes = (pedido: Valor, anotacoes: Anotacao[]) =>
     setLista((l) =>
       l && {
         ...l,
         linhas: l.linhas.map((x) =>
-          x.PEDIDO === pedido ? { ...x, OBSERVACAO: o?.texto ?? null, OBSERVACAO_POR: o?.por ?? null, OBSERVACAO_EM: o?.em ?? null } : x,
+          x.PEDIDO === pedido
+            ? {
+                ...x,
+                OBSERVACAO: anotacoes[0]?.texto ?? null,
+                OBSERVACAO_POR: anotacoes[0]?.por ?? null,
+                OBSERVACAO_EM: anotacoes[0]?.em ?? null,
+                OBSERVACAO_QTD: anotacoes.length,
+              }
+            : x,
         ),
       },
     )
@@ -95,6 +108,44 @@ export default function Pedidos() {
     }
   }
 
+  // Mesma ideia: reordena na hora e salva; se falhar, volta. Lista vazia = ordem padrão (o servidor devolve já ordenado).
+  const salvarOrdem = async (colunas: Coluna[] | null) => {
+    if (!lista) return
+    const antes = lista
+    if (colunas) setLista({ ...lista, colunas, ordemPersonalizada: true })
+    try {
+      await api('/dashboard/pedidos/colunas/ordem', {
+        method: 'PUT',
+        body: JSON.stringify({ ordem: colunas?.map((c) => c.campo) ?? [] }),
+      })
+      setError('')
+      if (!colunas) await load()
+    } catch (err) {
+      setLista(antes)
+      setError(`Não foi possível salvar a ordem das colunas: ${(err as Error).message}`)
+    }
+  }
+
+  // Move a coluna arrastada para a posição da coluna onde foi solta (contando as ocultas também).
+  const soltar = (destino: string) => {
+    const origem = arrastando
+    setArrastando(null)
+    setAlvo(null)
+    if (!lista || !origem || origem === destino) return
+    const colunas = [...lista.colunas]
+    const de = colunas.findIndex((c) => c.campo === origem)
+    const para = colunas.findIndex((c) => c.campo === destino)
+    colunas.splice(para, 0, ...colunas.splice(de, 1))
+    salvarOrdem(colunas)
+  }
+
+  // Indica de que lado a coluna vai entrar: antes do alvo se veio da direita, depois se veio da esquerda.
+  const ladoAlvo = (campo: string) => {
+    if (!lista || alvo !== campo || !arrastando || arrastando === campo) return ''
+    const idx = (c: string) => lista.colunas.findIndex((x) => x.campo === c)
+    return idx(arrastando) > idx(campo) ? 'alvo-esq' : 'alvo-dir'
+  }
+
   return (
     <main className="content content-wide">
       <div className="page-head">
@@ -108,7 +159,15 @@ export default function Pedidos() {
           )}
         </div>
         <div className="page-actions">
-          {lista && <ColunasMenu colunas={lista.colunas} ocultas={lista.ocultas} onChange={salvarOcultas} />}
+          {lista && (
+            <ColunasMenu
+              colunas={lista.colunas}
+              ocultas={lista.ocultas}
+              onChange={salvarOcultas}
+              ordemPersonalizada={lista.ordemPersonalizada}
+              onRestaurarOrdem={() => salvarOrdem(null)}
+            />
+          )}
           <input
             className="search"
             type="search"
@@ -133,7 +192,37 @@ export default function Pedidos() {
           <div className="table-wrap table-scroll">
             <table className="table table-dados">
               <thead>
-                <tr>{visiveis.map((c) => <th key={c.campo} className={c.tipo === 'moeda' ? 'num' : ''}>{c.titulo}</th>)}</tr>
+                <tr>
+                  {visiveis.map((c) => (
+                    <th
+                      key={c.campo}
+                      className={[c.tipo === 'moeda' ? 'num' : '', 'arrastavel', arrastando === c.campo ? 'arrastando' : '', ladoAlvo(c.campo)].join(' ')}
+                      title="Arraste para mudar a posição da coluna"
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = 'move'
+                        e.dataTransfer.setData('text/plain', c.campo)
+                        setArrastando(c.campo)
+                      }}
+                      onDragOver={(e) => {
+                        if (!arrastando) return
+                        e.preventDefault()
+                        e.dataTransfer.dropEffect = 'move'
+                        if (alvo !== c.campo) setAlvo(c.campo)
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        soltar(c.campo)
+                      }}
+                      onDragEnd={() => {
+                        setArrastando(null)
+                        setAlvo(null)
+                      }}
+                    >
+                      {c.titulo}
+                    </th>
+                  ))}
+                </tr>
               </thead>
               <tbody>
                 {linhas.map((l) => (
@@ -149,10 +238,12 @@ export default function Pedidos() {
                           <ObservacaoCell
                             key={c.campo}
                             pedido={String(l.PEDIDO)}
+                            cliente={formatar(l.CLIENTE)}
                             texto={texto}
                             por={l.OBSERVACAO_POR as string | null}
                             em={l.OBSERVACAO_EM as string | null}
-                            onSalvo={(o) => atualizarObservacao(l.PEDIDO, o)}
+                            qtd={Number(l.OBSERVACAO_QTD ?? 0)}
+                            onAtualizado={(a) => atualizarAnotacoes(l.PEDIDO, a)}
                           />
                         )
                       }

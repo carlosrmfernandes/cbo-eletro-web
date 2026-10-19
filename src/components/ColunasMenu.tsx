@@ -4,10 +4,13 @@ interface Props {
   colunas: { campo: string; titulo: string }[]
   ocultas: string[]
   onChange: (ocultas: string[]) => void
+  ordemPersonalizada: boolean
+  onRestaurarOrdem: () => void
 }
 
 // Botão "Colunas" com a lista de checkboxes para mostrar/esconder colunas da tabela.
-export default function ColunasMenu({ colunas, ocultas, onChange }: Props) {
+// A ordem é a mesma da tabela (o usuário muda arrastando o cabeçalho).
+export default function ColunasMenu({ colunas, ocultas, onChange, ordemPersonalizada, onRestaurarOrdem }: Props) {
   const [aberto, setAberto] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -37,6 +40,9 @@ export default function ColunasMenu({ colunas, ocultas, onChange }: Props) {
       {aberto && (
         <div className="colunas-pop">
           <div className="colunas-acoes">
+            <button type="button" className="link-btn" onClick={onRestaurarOrdem} disabled={!ordemPersonalizada}>
+              Ordem padrão
+            </button>
             <button type="button" className="link-btn" onClick={() => onChange([])} disabled={!ocultas.length}>
               Mostrar todas
             </button>

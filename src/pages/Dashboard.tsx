@@ -4,7 +4,7 @@ import MonthlyChart, { type LinhaMes, type Serie } from '../components/MonthlyCh
 import { formatMes, numberFmt } from '../lib/format'
 
 interface Card {
-  chave: 'aguardandoDevolucao' | 'aguardandoReversa' | 'aguardandoRetirada' | 'fc82'
+  chave: 'aguardandoDevolucao' | 'aguardandoReversa' | 'aguardandoRetirada' | 'fc82' | 'fraude' | 'disputa'
   status: string
   total: number
   canais?: { canal: string; total: number }[]
@@ -73,9 +73,10 @@ export default function Dashboard() {
 
         <section className="cards">
           {(resumo?.cards ?? placeholders).map((c, i) => (
-            <article key={c.chave} className={`card serie-${i + 1}`}>
+            // Do 4º card em diante (FC82, Fraude, Disputa) ficam fora do gráfico: cinza neutro.
+            <article key={c.chave} className={`card serie-${Math.min(i + 1, 4)}`}>
               <span className="card-label">
-                <span className={`swatch serie-${i + 1}`} />
+                <span className={`swatch serie-${Math.min(i + 1, 4)}`} />
                 {c.status}
               </span>
               <strong className="card-value">{resumo ? numberFmt.format(c.total) : '—'}</strong>
@@ -149,4 +150,6 @@ const placeholders: Card[] = [
   { chave: 'aguardandoReversa', status: 'Aguardando Reversa', total: 0 },
   { chave: 'aguardandoRetirada', status: 'Aguardando Retirada', total: 0 },
   { chave: 'fc82', status: 'FC82', total: 0 },
+  { chave: 'fraude', status: 'Fraude', total: 0 },
+  { chave: 'disputa', status: 'Disputa', total: 0 },
 ]

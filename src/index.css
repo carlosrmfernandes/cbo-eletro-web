@@ -13,7 +13,7 @@
   --serie-1: #2a78d6;
   --serie-2: #eb6834;
   --serie-3: #1baf7a;
-  --serie-4: #8a93a6; /* card fora do gráfico (FC82): cinza neutro */
+  --serie-4: #8a93a6; /* cards fora do gráfico (FC82, Fraude, Disputa): cinza neutro */
   --grid: #eceef3;
   --axis: #c9ced9;
   --shadow: rgba(27, 35, 51, 0.12);
@@ -282,12 +282,16 @@ button.ghost:hover:not(:disabled) { background: var(--bg); }
 .table-dados td { text-align: left; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
 .table-dados th:first-child, .table-dados td:first-child { text-transform: none; }
 .table-dados .num { text-align: right; }
+.table-dados th.arrastavel { cursor: grab; user-select: none; }
+.table-dados th.arrastando { opacity: 0.4; }
+.table-dados th.alvo-esq { box-shadow: inset 3px 0 0 var(--primary); }
+.table-dados th.alvo-dir { box-shadow: inset -3px 0 0 var(--primary); }
 .table-dados tbody tr { cursor: pointer; }
 .table-dados tbody tr:hover td { background: var(--bg); }
 .table-dados tbody tr.selecionada td { background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
 
-/* Observação editável na lista de pedidos */
-.table-dados td.obs-cell { min-width: 200px; max-width: 320px; padding-top: 0.3rem; padding-bottom: 0.3rem; }
+/* Anotações na lista de pedidos: só a lâmpada na coluna, histórico no modal */
+.table-dados td.obs-cell { min-width: 110px; padding-top: 0.3rem; padding-bottom: 0.3rem; }
 button.obs-view {
   display: flex;
   align-items: center;
@@ -306,21 +310,30 @@ button.obs-view {
   white-space: nowrap;
 }
 .obs-lampada { flex: none; }
-.obs-texto { overflow: hidden; text-overflow: ellipsis; }
+.obs-qtd { font-size: 0.78rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 button.obs-view:hover:not(:disabled) { background: var(--surface); border-color: var(--border); }
 .obs-vazia { color: var(--muted); opacity: 0; }
 tr:hover .obs-vazia, button.obs-view:focus-visible .obs-vazia { opacity: 1; }
-.obs-input {
+.anotacao-form { display: flex; flex-direction: column; gap: 0.6rem; }
+.anotacao-form textarea {
   width: 100%;
   font: inherit;
-  padding: 0.25rem 0.4rem;
-  border: 1px solid var(--primary);
-  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   background: var(--surface);
   color: var(--text);
+  resize: vertical;
   outline: none;
 }
-.obs-erro { display: block; margin-top: 0.2rem; font-size: 0.78rem; color: var(--danger); white-space: normal; }
+.anotacao-form textarea:focus { border-color: var(--primary); }
+.anotacao-acoes { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.anotacao-acoes .muted { margin: 0; font-size: 0.82rem; }
+.anotacoes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.anotacoes li { padding: 0.75rem 0; border-top: 1px solid var(--border); }
+.anotacao-autor { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; font-size: 0.88rem; }
+.anotacao-autor time { font-size: 0.82rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.anotacoes p { margin: 0.3rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Seletor de colunas da lista de pedidos */
 .colunas-menu { position: relative; }
@@ -341,7 +354,7 @@ tr:hover .obs-vazia, button.obs-view:focus-visible .obs-vazia { opacity: 1; }
 .colunas-pop label { display: flex; align-items: center; gap: 0.55rem; padding: 0.35rem 0.5rem; border-radius: 6px; cursor: pointer; white-space: nowrap; }
 .colunas-pop label:hover { background: var(--bg); }
 .colunas-pop input { accent-color: var(--primary); }
-.colunas-acoes { display: flex; justify-content: flex-end; padding: 0.15rem 0.5rem 0.4rem; border-bottom: 1px solid var(--border); margin-bottom: 0.3rem; font-size: 0.85rem; }
+.colunas-acoes { display: flex; justify-content: space-between; gap: 1rem; padding: 0.15rem 0.5rem 0.4rem; border-bottom: 1px solid var(--border); margin-bottom: 0.3rem; font-size: 0.85rem; }
 
 /* Código de rastreio clicável e modal de rastreio */
 button.link-btn {
